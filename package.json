@@ -1,0 +1,33 @@
+{
+  "name": "toc-visualizer-platform",
+  "version": "1.0.0",
+  "description": "Interactive Theory of Computation Learning & Problem-Solving Platform (KTU 2024 Scheme)",
+  "private": true,
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
+  "scripts": {
+    "dev:backend": "npm run --workspace=backend dev",
+    "dev:frontend": "npm run --workspace=frontend dev",
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "build:backend": "npm run --workspace=backend build",
+    "build:frontend": "npm run --workspace=frontend build",
+    "build": "npm run build:backend && npm run build:frontend",
+    "start": "node backend/dist/server.js",
+    "test:backend": "npm run --workspace=backend test"
+  },
+  "keywords": [
+    "theory-of-computation",
+    "automata",
+    "dfa",
+    "nfa",
+    "cfg",
+    "pda",
+    "turing-machine",
+    "pumping-lemma",
+    "ktu-2024"
+  ],
+  "author": "TOC Visualizer Team",
+  "license": "MIT"
+}

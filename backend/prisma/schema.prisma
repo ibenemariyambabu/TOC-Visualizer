@@ -1,0 +1,250 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String         @id @default(uuid())
+  email          String         @unique
+  name           String
+  passwordHash   String
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  profile        Profile?
+  savedItems     SavedItem[]
+  notes          Note[]
+  bookmarks      Bookmark[]
+  attempts       Attempt[]
+  mistakes       Mistake[]
+  progress       Progress[]
+  automata       Automaton[]
+  grammars       Grammar[]
+  pdas           PDA[]
+  turingMachines TuringMachine[]
+}
+
+model Profile {
+  id          String   @id @default(uuid())
+  userId      String   @unique
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  avatar      String?
+  bio         String?
+  totalSolved Int      @default(0)
+  streakDays  Int      @default(0)
+  updatedAt   DateTime @updatedAt
+}
+
+model Module {
+  id           String     @id @default(uuid())
+  moduleNumber Int        @unique
+  name         String
+  description  String
+  topics       Topic[]
+  progress     Progress[]
+}
+
+model Topic {
+  id          String     @id @default(uuid())
+  moduleId    String
+  module      Module     @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  name        String
+  slug        String     @unique
+  description String
+  subtopics   Subtopic[]
+  questions   Question[]
+  mistakes    Mistake[]
+}
+
+model Subtopic {
+  id          String   @id @default(uuid())
+  topicId     String
+  topic       Topic    @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  name        String
+  slug        String
+  description String
+}
+
+model Question {
+  id            String            @id @default(uuid())
+  topicId       String
+  topic         Topic             @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  questionText  String
+  questionType  String
+  difficulty    Int
+  marks         Int               @default(5)
+  source        String            @default("KTU 2024 Scheme")
+  createdAt     DateTime          @default(now())
+
+  solution      Solution?
+  variants      QuestionVariant[]
+  attempts      Attempt[]
+  bookmarks     Bookmark[]
+  mistakes      Mistake[]
+}
+
+model QuestionVariant {
+  id           String   @id @default(uuid())
+  questionId   String
+  question     Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  variantText  String
+  parameters   String
+}
+
+model Solution {
+  id                    String         @id @default(uuid())
+  questionId            String         @unique
+  question              Question       @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  finalAnswer           String
+  conceptualExplanation String
+  formalAnswer          String
+  examAnswer            String
+  steps                 SolutionStep[]
+}
+
+model SolutionStep {
+  id                String   @id @default(uuid())
+  solutionId        String
+  solution          Solution @relation(fields: [solutionId], references: [id], onDelete: Cascade)
+  stepNumber        Int
+  title             String
+  action            String
+  explanation       String
+  stateBefore       String?
+  stateAfter        String?
+  visualizationData String?
+}
+
+model Automaton {
+  id           String   @id @default(uuid())
+  userId       String?
+  user         User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  name         String
+  type         String   // DFA, NFA, e-NFA
+  alphabet     String   // JSON string: ["a", "b"]
+  states       String   // JSON string: ["q0", "q1", "q2"]
+  startState   String
+  acceptStates String   // JSON string: ["q2"]
+  transitions  String   // JSON string of transitions array
+  isPublic     Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Grammar {
+  id          String   @id @default(uuid())
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  name        String
+  type        String   // REGULAR, CFG, CSG, UNRESTRICTED
+  startSymbol String   @default("S")
+  productions String   // JSON string array of productions
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model PDA {
+  id                 String   @id @default(uuid())
+  userId             String?
+  user               User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  name               String
+  states             String   // JSON array
+  inputAlphabet      String   // JSON array
+  stackAlphabet      String   // JSON array
+  startState         String
+  initialStackSymbol String   @default("Z0")
+  acceptStates       String   // JSON array
+  acceptanceMode     String   @default("FINAL_STATE") // FINAL_STATE or EMPTY_STACK
+  transitions        String   // JSON array
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+model TuringMachine {
+  id            String   @id @default(uuid())
+  userId        String?
+  user          User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  name          String
+  states        String   // JSON array
+  inputAlphabet String   // JSON array
+  tapeAlphabet  String   // JSON array
+  blankSymbol   String   @default("□")
+  startState    String
+  acceptState   String
+  rejectState   String
+  transitions   String   // JSON array
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model SavedItem {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  entityType String   // QUESTION, AUTOMATON, GRAMMAR, PDA, TM
+  entityId   String
+  notes      String?
+  createdAt  DateTime @default(now())
+}
+
+model Note {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  entityType String
+  entityId   String
+  content    String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Bookmark {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  questionId String
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+}
+
+model Attempt {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  questionId String
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  answer     String
+  isCorrect  Boolean
+  timeTaken  Int      // in seconds
+  createdAt  DateTime @default(now())
+}
+
+model Mistake {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  questionId  String
+  question    Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  topicId     String
+  topic       Topic    @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  mistakeType String
+  description String
+  createdAt   DateTime @default(now())
+}
+
+model Progress {
+  id              String   @id @default(uuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  moduleId        String
+  module          Module   @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  topicsCompleted Int      @default(0)
+  score           Int      @default(0)
+  updatedAt       DateTime @updatedAt
+
+  @@unique([userId, moduleId])
+}
