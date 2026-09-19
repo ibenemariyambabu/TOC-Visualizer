@@ -17,6 +17,10 @@
     "start": "node backend/dist/server.js",
     "test:backend": "npm run --workspace=backend test"
   },
+  "optionalDependencies": {
+    "@rollup/rollup-linux-x64-gnu": "^4.43.0",
+    "@rollup/rollup-linux-x64-musl": "^4.43.0"
+  },
   "keywords": [
     "theory-of-computation",
     "automata",
